@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dice Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+    .dice-game {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .status, .invitation {
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="dice-game">
+    <h1>Dice Game</h1>
+    <div class="status">
+      <p>Current Level: <span id="current-level">0</span></p>
+      <p>Rolls Today: <span id="rolls-today">0</span>/300</p>
+    </div>
+    <button id="roll-dice">Roll Dice</button>
+    <div id="roll-result"></div>
+    <div class="invitation">
+      <h2>Invite a Friend</h2>
+      <input type="text" id="friend-id" placeholder="Friend ID">
+      <button id="invite-friend">Invite Friend</button>
+      <div id="invite-result"></div>
+    </div>
+  </div>
+  <script>
+    let player = {
+      level: 0,
+      dice: {},
+      rollsToday: 0
+    };
+
+    const probabilities = [
+      { level: -9, chance: 10 },
+      { level: -8, chance: 10 },
+      { level: -7, chance: 15 },
+      { level: -6, chance: 15 },
+      { level: -5, chance: 20 },
+      { level: -4, chance: 20 },
+      { level: -3, chance: 8 },
+      { level: -2, chance: 1 },
+      { level: -1, chance: 0.8 },
+      { level: 0, chance: 0.2 }
+    ];
+
+    document.getElementById('roll-dice').addEventListener('click', () => {
+      if (player.rollsToday >= 300) {
+        alert('You have reached your roll limit for today.');
+        return;
+      }
+
+      const diceLevel = rollDice(player.level);
+      player.dice[diceLevel] = (player.dice[diceLevel] || 0) + 1;
+      player.rollsToday += 1;
+      player.level = Math.max(player.level, diceLevel);
+
+      document.getElementById('current-level').innerText = player.level;
+      document.getElementById('rolls-today').innerText = player.rollsToday;
+      document.getElementById('roll-result').innerText = `You rolled a level ${diceLevel} dice!`;
+    });
+
+    document.getElementById('invite-friend').addEventListener('click', () => {
+      const friendId = document.getElementById('friend-id').value;
+      if (!friendId) {
+        alert('Please enter a friend ID.');
+        return;
+      }
+
+      // Simulating friend level as 5 for example purposes
+      const inviteBonus = 5;
+      player.level += inviteBonus;
+      document.getElementById('current-level').innerText = player.level;
+      document.getElementById('invite-result').innerText = `You have received a bonus of ${inviteBonus} levels!`;
+    });
+
+    function rollDice(playerLevel) {
+      const adjustedProbabilities = probabilities.map(p => ({
+        level: Math.max(0, playerLevel + p.level),
+        chance: p.chance
+      }));
+
+      const sumChances = adjustedProbabilities.reduce((sum, p) => sum + p.chance, 0);
+      const random = Math.random() * sumChances;
+      let accumulatedChance = 0;
+
+      for (const p of adjustedProbabilities) {
+        accumulatedChance += p.chance;
+        if (random < accumulatedChance) {
+          return p.level;
+        }
+      }
+      return playerLevel; // Fallback
+    }
+  </script>
+</body>
+</html>
